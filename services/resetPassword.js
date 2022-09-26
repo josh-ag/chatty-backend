@@ -46,11 +46,11 @@ const handlePasswordReset = (req, res) => {
       (token, user, done) => {
         //SEND EMAIL WITH NODEMAILER
         const transporter = nodemailer.createTransport({
-          host: "smtp.sendgrid.net",
+          host: process.env.MAIL_HOST,
           port: 587,
           auth: {
             user: "apikey",
-            pass: "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",
+            pass: process.env.SEND_GRID_PASSWORD,
           },
           tls: {
             rejectUnauthorized: false,
