@@ -1,0 +1,89 @@
+*,html{
+    font-family: Outfit;
+    font-size:18px
+}
+
+body{
+    width: 100%;
+    height: auto;
+    background: #ddd;
+}
+
+.navbar{
+    height: 75px;
+}
+
+.navbar-brand{
+    font-size: 24px;
+    cursor: pointer;
+}
+
+#home{
+    width: 100%;
+    height: calc(100vh - 75px);
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#home header{
+flex:8
+}
+#home footer{
+    flex:1
+}
+
+#home h2{
+    text-align: center;
+    color: #333;
+    font-size:20;
+    font-weight: bold;
+    
+}
+
+#login {
+    width: 100%;
+    height: calc(100vh - 75px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+#login .title{
+    font-size: 27;
+    font-weight: 700;
+    color: #333;
+}
+#login .link{
+    text-decoration: none;
+    color: #1e55bb;
+    transition: all .2s ease-in-out;
+}
+
+#login .link:hover{
+    text-decoration: underline;
+}
+
+#login-container{
+    background: #ccc;
+    width: 400px;
+    height: auto;
+    padding: 1rem;
+   transition: all 100ms ease-in-out;
+}
+
+#login-container:hover{
+ border-left: 5px solid #5992fb;
+}
+
+footer{
+    width: 100%;
+    justify-content: flex-end;
+    
+}
+
+
+footer p{
+    text-align: center;
+}

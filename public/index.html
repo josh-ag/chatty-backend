@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>socket chat</title>
+  </head>
+  <body>
+    <header>
+      <h2>SocketChat</h2>
+    </header>
+
+    <main>
+      <section>
+        <p>Welcome To Socketchat!</p>
+      </section>
+
+      <div id="news">
+
+      </div>
+
+
+      <div>
+          <ul id="messageList">
+            <span id="typing"></span>
+          </ul>
+        <form id="form">
+          <input type="text" id="input" placeholder="chat" />
+          <input type="submit" name="Send" value="Send" />
+        </form>
+      </div>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      const news = document.getElementById('news')
+      const form = document.getElementById("form");
+      const input = document.getElementById("input");
+      const messageList = document.getElementById('messageList');
+      const isTyping = document.getElementById('typing');
+
+      //listen for when new user connects
+      socket.on("connection", (socket) => {
+        socket.on("disconnect", (socket) =>
+          console.log("A user is diconnected!")
+        );
+      });
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        //emit event
+        if (input.value) {
+          socket.emit("chat message", input.value);
+          console.log("Message send");
+        }
+        input.value='';
+    });
+
+
+    socket.on('join', id=> {
+        console.log(id, ' join the room!');
+        const newJoins = document.createElement('p');
+        newJoins.textContent = `${id} join the room!`;
+        news.appendChild(newJoins);
+    });
+
+    socket.on('message', msg=> {
+        const msgElement = document.createElement('li');
+        msgElement.textContent = msg;
+
+        messageList.appendChild(msgElement);
+      });
+
+      //offline|when user goes offline
+      socket.on('offline', data=>{
+        console.log(data);
+      });
+
+    //typing message;
+    input.addEventListener('keypress', ()=> {
+      socket.emit('typing', ()=> console.log('typing'));
+    });
+
+    //write typing log to screen;
+    socket.on('typing', id=> {
+
+      isTyping.innerText = `${id} is typing`;
+
+    });
+    </script>
+  </body>
+</html>
