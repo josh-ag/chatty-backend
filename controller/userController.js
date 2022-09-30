@@ -15,6 +15,7 @@ const { hashSync, compareSync, genSaltSync } = require("bcryptjs");
 */
 const login = async (req, res) => {
   const { email, password } = req.body;
+
   //find user
   const user = await Users.findOne({ email });
 
@@ -224,6 +225,8 @@ const accountVerification = async (req, res) => {
 const resetPassword = async (req, res) => {
   const { email } = req.body;
 
+  console.log(req.body);
+
   if (!email) {
     return res.status(400).json({
       message: "Email field is required",
@@ -248,7 +251,7 @@ const resetPassword = async (req, res) => {
               return res.status(400).json({
                 statusCode: 400,
                 error: true,
-                message: "Sorry We do not this email",
+                message: "Sorry, email address not recognized",
               });
             }
 
