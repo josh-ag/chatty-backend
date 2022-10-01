@@ -1,15 +1,16 @@
 const express = require("express");
+require("dotenv").config();
 const path = require("path");
 const http = require("http");
 const userRoute = require("./routes/userRoute");
 const PORT = process.env.PORT || 5050;
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
-const { mongodb } = require("./services/db");
+const db = require("./services/db");
 const passport = require("passport");
 const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
-require("dotenv").config();
+
 require("./services/authProvider").localStrategy;
 require("./services/authProvider").googleStrategy;
 require("./services/authProvider").jwtStrategy;
@@ -70,7 +71,13 @@ io.on("connection", (socket) => {
   });
 });
 
-//connect to mongoDb;
-mongoose.connect(mongodb, () => console.log("Db connected"));
+mongoose.connect(
+  db.mongodb,
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  },
+  () => console.log("Db connected")
+);
 
 server.listen(PORT, () => console.log("Server Started On Port: ", PORT));

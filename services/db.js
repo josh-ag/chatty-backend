@@ -1,4 +1,4 @@
 module.exports = {
-  mongodb: "mongodb://127.0.0.1:27017/chatty",
+  mongodb: process.env.MONGO_DB,
   secret: process.env.DB_SECRET,
 };

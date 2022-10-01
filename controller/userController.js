@@ -16,6 +16,8 @@ const { hashSync, compareSync, genSaltSync } = require("bcryptjs");
 const login = async (req, res) => {
   const { email, password } = req.body;
 
+  console.log(req.body);
+
   //find user
   const user = await Users.findOne({ email });
 
@@ -291,7 +293,7 @@ const resetPassword = async (req, res) => {
           host: "smtp.sendgrid.net",
           port: 587,
           auth: {
-            user: process.env.SEND_GRID_USER,
+            user: "apiKey",
             pass: process.env.SEND_GRID_PASSWORD,
           },
           tls: {
