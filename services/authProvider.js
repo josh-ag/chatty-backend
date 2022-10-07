@@ -32,8 +32,8 @@ const googleStrategy = passport.use(
   new GoogleStrategy(
     {
       //config options for this strategy
-      clientID: process.env.Google_ClientID,
-      clientSecret: process.env.googleClientSecret,
+      clientID: process.env.GOOGLE_CLIENTID,
+      clientSecret: process.env.GOGGLE_CLIENT_SECRET,
       callbackURL: "/auth/google/redirect",
     },
     () => {}
