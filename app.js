@@ -9,7 +9,6 @@ const passport = require("passport");
 const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 const { errorHandler } = require("./middleware/errorMiddleware");
-
 require("./services/authProvider").googleStrategy;
 require("./services/authProvider").jwtStrategy;
 
@@ -19,6 +18,7 @@ const app = express();
 app.use(require("cors")());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(
   cookieSession({
     keys: process.env.JWT_SECRET,

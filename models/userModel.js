@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
     bios: { type: String },
     country: { type: String },
     phone: { type: Number },
-    verifyCode: String,
+    verifyCode: { type: String },
     verified: { type: Boolean, default: false },
     resetPassword: String,
     resetPasswordToken: { type: String, unique: true },
