@@ -37,6 +37,9 @@ const io = new Server(server);
 
 //route handler
 app.use("/api/user", userRoute);
+app.get("/", (req, res) => {
+  res.send("Welcome To Chatty Web Server");
+});
 app.use(errorHandler);
 
 io.on("connection", (socket) => {
@@ -64,4 +67,4 @@ io.on("connection", (socket) => {
 
 //connect Db
 dbConn();
-server.listen(PORT, () => console.log("Server Started On Port: ", PORT));
+app.listen(PORT, () => console.log("Server Started On Port: ", PORT));
