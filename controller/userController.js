@@ -8,7 +8,6 @@ const { hashSync, compareSync, genSaltSync } = require("bcryptjs");
 /*
 
 
-
 @desc - LOGIN USER
 @method - POST
 @access - PUBLIC
@@ -16,18 +15,18 @@ const { hashSync, compareSync, genSaltSync } = require("bcryptjs");
 const login = async (req, res) => {
   const { email, password } = req.body;
 
-  console.log(req.body);
-
   //find user
   const user = await Users.findOne({ email });
 
   if (!user) {
-    return res.status(400).json({ message: "User not found", error: true });
+    return res.status(400).json({ message: "User not found", statusCode: 400 });
   }
 
   //compire password
   if (!compareSync(password, user.password)) {
-    return res.status(400).json({ message: "Incorrect password", error: true });
+    return res
+      .status(400)
+      .json({ message: "Incorrect password", statusCode: 400 });
   }
 
   //gen token
@@ -50,24 +49,22 @@ const login = async (req, res) => {
 @access - PUBLIC
 */
 const register = async (req, res) => {
-  //get req body
-
   const { firstname, lastname, email, username, password } = req.body;
 
-  //check if username is taken
-  const isUserExist = await Users.findOne({ username });
-  if (isUserExist) {
+  //check if username already taken
+  const isUsernameTaken = await Users.findOne({ username });
+  if (isUsernameTaken) {
     return res.status(400).json({
-      error: true,
+      statusCode: 400,
       message: "Username is taken",
     });
   }
 
-  //check if email already registered
+  //check if email already used/registered
   const isEmailUsed = await Users.findOne({ email });
   if (isEmailUsed) {
     return res.status(400).json({
-      error: true,
+      statusCode: 400,
       message: "Email already registered",
     });
   }
@@ -80,10 +77,10 @@ const register = async (req, res) => {
     [
       //gen token
       (done) => {
-        crypto.randomBytes(20, (err, buffer) => {
+        crypto.randomBytes(3, (err, buffer) => {
           if (err) throw err;
           const token = buffer.toString("hex");
-
+          console.log(token);
           done(err, token);
         });
       },
@@ -97,6 +94,7 @@ const register = async (req, res) => {
             email,
             username,
             password: hash,
+            verifyCode: token,
           },
           (error, user) => {
             done(error, token, user);
@@ -105,12 +103,17 @@ const register = async (req, res) => {
       },
 
       (token, user, done) => {
+        res.status(201).json({
+          message: "registration successful",
+          statusCode: 201,
+        });
+
         //send user a registration email with verify email
         const Transporter = nodeMailer.createTransport({
           host: process.env.MAIL_HOST,
           port: 587,
           auth: {
-            user: process.env.SEND_GRID_USER,
+            user: "apikey",
             pass: process.env.SEND_GRID_PASSWORD,
           },
           tls: {
@@ -119,119 +122,111 @@ const register = async (req, res) => {
         });
 
         const HTMLOption = `
-        <h2>Welcome To Chatty, ${user.username.toUpperCase()}!</h2>
         <main>
-        <h6>We are glad to see you join us Today<br/>
-        </h6>
-        You're just a few step to completing your registration.
-        Please click below link, or paste to your browser to complete the process:
-       <p><b>Verify Your Email</b></p>
-       <a href="http://${req.headers.host}/auth/verify?id=${
-          user._id
-        }&token=${token}>Verify Email</a>
+          <h2>New User Notice</h2>
+          <h6>We are thrilled to have you here, ${user.username}!</h6>
+          <br/>
+          
+        <p>Use the below link to verify your account to unlock full features</p>
+        <a href="http://${req.headers.host}/account/verify?email=${
+          user.email
+        }&token=${token}">Verify Email</a>
+        <p>Verification Code:<b>${token.toString()}</b></p>
         </main>
     `;
 
         const mailOptions = {
           to: user.email,
           from: process.env.SENDER_EMAIL,
-          subject: "Chatty Registration Notification",
-          text: `You are receiving this because you or someone just used your email to signup to the Chatty Commmunity`,
+          subject: "New User Notice",
+          text: `We are thrilled to have you here, ${user.username}!\n\nPls use the below link to verify your account\n\n<a href="http://${req.headers.host}/account/verify?email=${user.email}&token=${token}">Verify Email</a>\n\nVerification Code: ${token}`,
           html: HTMLOption,
         };
 
         //send mail
-        Transporter.sendMail(mailOptions, (err, info) => {
-          if (err) {
-            console.error("Mail Sending Error: ", err);
-            done(err, null);
-          }
-
-          res.status(201).json({
-            success: true,
-            message: "Registration successful",
-            mailDeliveryInfo: info,
-          });
-
-          done(null, user);
-        });
+        Transporter.sendMail(mailOptions);
       },
     ],
     (err) => {
-      //do stuff with error
+      //In case of other errors
+      if (err) {
+        throw new Error(err);
+      }
     }
   );
 };
 
 /*
 
-
-
 @desc - VERIFY USER ACC
 @method - GET
-@access - PRIVATE
+@access - PUBLIC
 */
-const accountVerification = async (req, res) => {
-  const { id } = req.query;
+const verifyAccount = async (req, res) => {
+  const { email, token } = req.body;
 
-  if (!id) {
+  if (!email || !token) {
     return res.status(400).json({
-      status: 400,
-      error: true,
-      message: "Unknown Request Type",
+      statusCode: 400,
+      message: "Invalid  or broken link. Check the link and try again",
     });
   }
 
-  const user = await Users.findOne({ _id: req.params.id });
+  const user = await Users.findOne({ email });
 
   if (!user) {
     return res.status(400).json({
-      message: "Request Not Understood: No user found",
+      statusCode: 400,
+      message: "Email not registered",
     });
   }
 
   //check if email is already verified
-  if (user && user.emailVerified) {
-    return res.status(201).json({
-      statusCode: 201,
-      success: true,
+  if (user && user.verified) {
+    return res.status(200).json({
+      statusCode: 200,
       message: "Email already verified",
     });
   }
 
-  //verify user if not verified
-  let query = { _id: req.params.id };
-  let updatedUser = {};
-  updatedUser.emailVerified = true;
-
-  // //send update
-  const updated = await Users.updateOne(query, updatedUser);
-
-  if (updated) {
-    res.status(200).json({
-      statusCode: 200,
-      success: true,
-      message: "Email verification successful",
+  console.log(token);
+  console.log(user.verifyCode);
+  //check if code is match
+  if (token.toString() !== user.verifyCode) {
+    return res.status(400).json({
+      statusCode: 400,
+      message: "invalid or token has expired",
     });
   }
+
+  //verify account
+  await Users.findOneAndUpdate(
+    { email },
+    { verified: true, verifyCode: "" },
+    { updated: true }
+  );
+
+  res.status(201).json({
+    statusCode: 201,
+    message: "verification successful",
+  });
 };
 
 /*
 
 
 
-@desc - PASSWD RECOVERY
+@desc - RESET USER PASSWD
 @method - POST
 @access - PUBLIC
 */
 const resetPassword = async (req, res) => {
   const { email } = req.body;
 
-  console.log(req.body);
-
   if (!email) {
     return res.status(400).json({
-      message: "Email field is required",
+      statusCode: 400,
+      message: "No email was provided",
     });
   }
 
@@ -239,37 +234,33 @@ const resetPassword = async (req, res) => {
     [
       //GEN TOKEN
       (done) => {
-        crypto.randomBytes(20, (err, buffer) => {
+        crypto.randomBytes(12, (err, buffer) => {
           const token = buffer.toString("hex");
+          console.log(token);
           done(err, token);
         });
       },
 
       //FIND USER WITH THIS EMAIL
       (token, done) => {
-        Users.findOne({ email: email })
+        Users.findOne({ email })
           .then((user) => {
             if (!user) {
               return res.status(400).json({
                 statusCode: 400,
-                error: true,
-                message: "Sorry, email address not recognized",
+                message: "email not recognized",
               });
             }
 
             done(null, token, user);
           })
           .catch((err) => {
-            res.status(500).json({
-              statusCode: 500,
-              error: true,
-              message: "Server error: " + err.message,
-            });
+            throw new Error(err);
           });
       },
 
       //UPDATE USER RECORD
-      //@desc- update user with token
+      //@desc- update user info with token
       (token, user, done) => {
         Users.findByIdAndUpdate(
           { _id: user.id },
@@ -283,14 +274,18 @@ const resetPassword = async (req, res) => {
         });
       },
 
-      //SEND USER EMAIL
-      //@desc- notify user via mail of his req with reset token
+      //@desc- send token to user
       (token, user, done) => {
+        res.status(201).json({
+          statusCode: 201,
+          message:
+            "Instruction to reset your password has been sent to your email",
+        });
         console.log("sending reset email...");
-        console.log("Updated User: ", user);
+
         //create mail transporter
         const Transporter = nodeMailer.createTransport({
-          host: "smtp.sendgrid.net",
+          host: process.env.MAIL_HOST,
           port: 587,
           auth: {
             user: "apiKey",
@@ -304,15 +299,15 @@ const resetPassword = async (req, res) => {
         //html version of the email
         const HTMLOption = `
          <main> 
-          <h2>Chatty Password Reset Request</h2>
-          <h4>Hello ${user.username}! \nA request has been received to change the password for your Chatty account</h4>
+          <h2>Chatty Password Reset</h2>
+          <h4>Hello ${user.username}! \nA request has been received to reset your chatty password</h4>
           <br/>
-          <a href="http://${req.headers.host}/auth/reset/${token}" style="color:#fff;padding:1rem;font-size:18px;font-weight:600;background-color:#4D4A95;text-decoration:none;width:120,display:block">Reset Password</a>
-          <br/> <br/>
+          <p>NOTE: If you do not initiate this request, please ignore this message and your password will remain Unchanged.</p>
+          <br/>
+           <a href="http://${req.headers.host}/auth/reset/?email=${user.email}?token=${token}">Reset Password</a>
+          <br/>
           <p>Link expires in an hour time</p>
-          <p>NOTE: If you do not initiate this request, please ignore this message and your password remain Unchanged.</p>
-          <br/>
-          <h2>Thank You,<br/>The Chatty Team</h2>
+          <h2>Chatty Team!</h2>
         </main> 
     `;
 
@@ -320,8 +315,10 @@ const resetPassword = async (req, res) => {
         const mailOptions = {
           from: process.env.SENDER_EMAIL,
           to: user.email,
-          subject: "Chatty Password Reset Request",
-          text: `Hello ${user.username}! \nYou recieve this message because you or someone else have requested for a reset in your Chatty password.\n\nFollow the link below to reset your password:\n http://${req.headers.host}/auth/reset/${token}\nLink expires in an hour time.\nNOTE: If you do not initiate this request, please ignore this message and your password remain Unchanged.\n\nThank You,\nThe Chatty Team`,
+          subject: "Chatty Password Reset",
+          text: `Hello ${
+            user.username
+          }! \nYou recieve this message because you or someone else have requested for your chatty account password reset.\n\nCode: ${token.toUpperCase()}\nNOTE: If you do not initiate this request, please ignore this message and your password remain Unchanged.\n\nThank You,\nThe Chatty Team`,
           html: HTMLOption,
         };
 
@@ -329,20 +326,17 @@ const resetPassword = async (req, res) => {
           if (err) {
             return res.status(500).json({
               statusCode: 500,
-              error: true,
-              message: "Server error: " + "\nSomething went wrong. Try later",
+              message:
+                "\nWe could not complete your request this time. Try later",
             });
           }
 
           if (info.response.includes("Ok")) {
             res.status(201).json({
               statusCode: 201,
-              success: true,
-              message: "Reset instruction has been sent. Check your email",
+              message:
+                "Instruction to reset your password has been sent to your email",
             });
-
-            console.log("Email Send...");
-            done(err, info);
           }
         });
       },
@@ -366,37 +360,63 @@ const resetPassword = async (req, res) => {
 @access - PUBLIC
 */
 const newPassword = async (req, res) => {
+  const { token } = req.query;
   const { password, confirm } = req.body;
 
-  if (!password || password === "") {
-    return res.render("resetPassword", {
+  const user = await Users.findOne({ email });
+
+  if (!user) {
+    //do something if no user
+  }
+
+  //is token expired
+  if (user.resetPasswordExpires) {
+    //do something
+  }
+
+  if (token !== user.resetPasswordToken) {
+    //do something if token do not match
+  }
+
+  if (!password) {
+    return res.status(400).json({
       message: "Enter new password",
       statusCode: 400,
-      error: true,
     });
   }
 
-  if (!confirm || confirm === "") {
-    return res.render("resetPassword", {
-      message: "Confirm password do not match",
+  if (!confirm) {
+    return res.status(400).json({
+      message: "Confirm password is missing",
       statusCode: 400,
-      error: true,
     });
   }
 
   if (password !== confirm) {
-    return res.render("resetPassword", {
+    return res.status(400).json({
       message: "Password do not match",
       statusCode: 400,
-      error: true,
-      password,
-      confirm,
     });
   }
+
+  //hash password
+  const salt = genSaltSync(10);
+  const hash = hashSync(password, salt);
+
+  Users.findByIdAndUpdate({ _id: user.id }, { password: hash }, { new: true })
+    .then(() => {
+      res.statu(201).json({
+        statusCode: 201,
+        message: "new password set successfully",
+      });
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
 };
 
 /*
-
+Enter new password
 
 
 @desc - GET USER PROFILE
@@ -410,16 +430,16 @@ const getProfile = (req, res, next) => {
 /*
 
 
-@desc - UPDATE YOUR PROFILE
+@desc - UPDATE USER PROFILE
 @method - PUT
 @access - PRIVATE
 */
 const updateProfile = async (req, res, next) => {
-  const updated = await Users.findByIdAndUpdate(
-    { _id: req.params.id },
-    req.body,
-    { new: true }
-  ).select("-password");
+  const { id } = req.params;
+
+  const updated = await Users.findByIdAndUpdate({ _id: id }, req.body, {
+    new: true,
+  }).select("-password");
 
   res.status(201).json({ message: "Update applied", user: updated });
 };
@@ -436,6 +456,8 @@ const userController = {
   updateProfile,
   login,
   register,
+  newPassword,
   resetPassword,
+  verifyAccount,
 };
 module.exports = userController;

@@ -1,4 +1,6 @@
 sendgrid.env
 .env
 
+middleware/authMiddleware.js
+
 node_modules

@@ -11,9 +11,10 @@ const userSchema = new mongoose.Schema(
     bios: { type: String },
     country: { type: String },
     phone: { type: Number },
-    emailVerified: { type: Boolean, default: false },
+    verifyCode: String,
+    verified: { type: Boolean, default: false },
     resetPassword: String,
-    resetPasswordToken: { type: String },
+    resetPasswordToken: { type: String, unique: true },
     resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
