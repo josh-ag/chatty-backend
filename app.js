@@ -7,7 +7,7 @@ const { Server } = require("socket.io");
 const { dbConn } = require("./config/db");
 const passport = require("passport");
 const bodyParser = require("body-parser");
-const session = require("express-session");
+const cookieSession = require("cookie-session");
 const { errorHandler } = require("./middleware/errorMiddleware");
 
 require("./services/authProvider").googleStrategy;
@@ -20,11 +20,9 @@ app.use(require("cors")());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
-  session({
-    saveUninitialized: false,
-    resave: true,
-    secret: "keyboard cat",
-    cookie: { maxAge: 24 * 60 * 60 * 1000 },
+  cookieSession({
+    keys: process.env.JWT_SECRET,
+    maxAge: 24 * 60 * 60 * 1000,
   })
 );
 
