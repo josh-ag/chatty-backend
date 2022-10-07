@@ -8,6 +8,7 @@ const { dbConn } = require("./config/db");
 const passport = require("passport");
 const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
+const corse = require("cors");
 const { errorHandler } = require("./middleware/errorMiddleware");
 require("./services/authProvider").googleStrategy;
 require("./services/authProvider").jwtStrategy;
@@ -15,16 +16,16 @@ require("./services/authProvider").jwtStrategy;
 //init express
 const app = express();
 //allow same origin sharing
-app.use(require("cors")());
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(
   cookieSession({
     keys: process.env.JWT_SECRET,
     maxAge: 24 * 60 * 60 * 1000,
   })
 );
+app.use(corse());
 
 app.use(passport.initialize());
 app.use(passport.session());

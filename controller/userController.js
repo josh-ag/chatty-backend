@@ -15,29 +15,35 @@ const { hashSync, compareSync, genSaltSync } = require("bcryptjs");
 const login = async (req, res) => {
   const { email, password } = req.body;
 
-  //find user
-  const user = await Users.findOne({ email });
+  try {
+    //find user
+    const user = await Users.findOne({ email });
 
-  if (!user) {
-    return res.status(400).json({ message: "User not found", statusCode: 400 });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "User not found", statusCode: 400 });
+    }
+
+    //compire password
+    if (!compareSync(password, user.password)) {
+      return res
+        .status(400)
+        .json({ message: "Incorrect password", statusCode: 400 });
+    }
+
+    //gen token
+
+    const token = genToken(user.id);
+    //send token
+    res.status(200).json({
+      id: user.id,
+      message: "Login Succeeded",
+      token,
+    });
+  } catch (error) {
+    throw new Error(error);
   }
-
-  //compire password
-  if (!compareSync(password, user.password)) {
-    return res
-      .status(400)
-      .json({ message: "Incorrect password", statusCode: 400 });
-  }
-
-  //gen token
-
-  const token = genToken(user.id);
-  //send token
-  res.status(200).json({
-    id: user.id,
-    message: "Login Succeeded",
-    token,
-  });
 };
 
 /*
@@ -65,7 +71,7 @@ const register = async (req, res) => {
   if (isEmailUsed) {
     return res.status(400).json({
       statusCode: 400,
-      message: "Email already registered",
+      message: "Email already used",
     });
   }
 
@@ -87,24 +93,28 @@ const register = async (req, res) => {
 
       (token, done) => {
         //CREATE ACCOUNT
-        Users.create(
-          {
-            firstname,
-            lastname,
-            email,
-            username,
-            password: hash,
-            verifyCode: token,
-          },
-          (error, user) => {
-            done(error, token, user);
-          }
-        );
+        const newUser = new Users({
+          firstname,
+          lastname,
+          email,
+          username,
+          password: hash,
+          verifyCode: token,
+        });
+
+        newUser
+          .save()
+          .then((user) => {
+            done(null, token, user);
+          })
+          .catch((error) => done(error, null, null));
       },
 
       (token, user, done) => {
+        console.log("new User: ", user);
+
         res.status(201).json({
-          message: "registration successful",
+          message: "registration successful. Pls confirm your email",
           statusCode: 201,
         });
 
@@ -149,9 +159,7 @@ const register = async (req, res) => {
     ],
     (err) => {
       //In case of other errors
-      if (err) {
-        throw new Error(err);
-      }
+      throw new Error(err);
     }
   );
 };
