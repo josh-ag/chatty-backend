@@ -7,26 +7,28 @@ const { Server } = require("socket.io");
 const { dbConn } = require("./config/db");
 const passport = require("passport");
 const bodyParser = require("body-parser");
-const cookieSession = require("cookie-session");
 const corse = require("cors");
 const { errorHandler } = require("./middleware/errorMiddleware");
 require("./services/authProvider").googleStrategy;
 require("./services/authProvider").jwtStrategy;
+const session = require("express-session");
 
 //init express
 const app = express();
 //allow same origin sharing
-
+app.use(corse());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
-  cookieSession({
-    keys: process.env.JWT_SECRET,
-    maxAge: 24 * 60 * 60 * 1000,
+  session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true },
   })
 );
-app.use(corse());
 
+// init passport
 app.use(passport.initialize());
 app.use(passport.session());
 

@@ -19,4 +19,15 @@ route.route("/:id").put(passport.authenticate("jwt"), updateProfile);
 route.route("/password/reset").post(resetPassword);
 route.route("/account/verify").put(verifyAccount);
 
+route.route("/auth/google").get(
+  getProfile,
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  })
+);
+
+route.route("/auth/google/callback").get((req, res) => {
+  console.log(res);
+}, passport.authenticate("google"));
+
 module.exports = route;

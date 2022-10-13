@@ -31,12 +31,21 @@ const jwtStrategy = passport.use(
 const googleStrategy = passport.use(
   new GoogleStrategy(
     {
-      //config options for this strategy
       clientID: process.env.GOOGLE_CLIENTID,
-      clientSecret: process.env.GOGGLE_CLIENT_SECRET,
-      callbackURL: "/auth/google/redirect",
+      clientSecret: process.env.Google_CLIENT_SECRET,
+      callbackURL: "/auth/google/callback",
     },
-    () => {}
+    (accessToken, refreshToken, profile, done) => {
+      Users.findOne({ id: profile.id }).then((existingUser) => {
+        if (existingUser) {
+          // we already have a record with the given profile ID
+          done(null, existingUser);
+        } else {
+          // we don't have a user record with this ID, make a new record!
+          new Users({ id: profile.id }).save().then((user) => done(null, user));
+        }
+      });
+    }
   )
 );
 
@@ -45,10 +54,11 @@ const googleStrategy = passport.use(
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
+
 passport.deserializeUser((id, done) => {
   Users.findById(id, (err, user) => {
     done(err, user);
-  });
+  }).select("-password");
 });
 
 module.exports = {
