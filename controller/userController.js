@@ -133,23 +133,27 @@ const register = async (req, res) => {
 
         const HTMLOption = `
         <main>
-          <h2>New User Notice</h2>
-          <h6>We are thrilled to have you here, ${user.username}!</h6>
+          <h2>New Account Creation</h2>
+          <h4>We are thrilled to have you here, ${user.username}!</h4>
           <br/>
           
-        <p>Use the below link to verify your account to unlock full features</p>
-        <a href="http://${req.headers.host}/account/verify?email=${
+        <h5>Use the below link to verify your account to unlock full features</h5>
+        <a href="https://chatty-web-app.netlify.app/account/verify/?token=${token}&email=${
           user.email
-        }&token=${token}">Verify Email</a>
-        <p>Verification Code:<b>${token.toString()}</b></p>
+        }">Verify Email</a>
+        <p>Verification Code:<b>${token.toString().toUpperCase()}</b></p>
         </main>
     `;
 
         const mailOptions = {
+          subject: "New Account Creation",
           to: user.email,
           from: process.env.SENDER_EMAIL,
-          subject: "New User Notice",
-          text: `We are thrilled to have you here, ${user.username}!\n\nPls use the below link to verify your account\n\n<a href="http://${req.headers.host}/account/verify?email=${user.email}&token=${token}">Verify Email</a>\n\nVerification Code: ${token}`,
+          text: `We are thrilled to have you here, ${
+            user.username
+          }!\n\nPls use the below link to verify your account\n\n<a href="https://chatty-web-app.netlify.app/account/verify/?token=${token}&email=${
+            user.email
+          }">Verify Email</a>\n\nVerification Code: ${token.toUpperCase()}`,
           html: HTMLOption,
         };
 
@@ -312,7 +316,7 @@ const resetPassword = async (req, res) => {
           <br/>
           <p>NOTE: If you do not initiate this request, please ignore this message and your password will remain Unchanged.</p>
           <br/>
-           <a href="http://${req.headers.host}/auth/reset/?email=${user.email}?token=${token}">Reset Password</a>
+           <a href="https://chatty-web-app.netlify.app/account/verify/?${req.headers.host}?token=${token}&email=${user.email}">Reset Password</a>
           <br/>
           <p>Link expires in an hour time</p>
           <h2>Chatty Team!</h2>
