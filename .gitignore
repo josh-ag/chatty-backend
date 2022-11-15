@@ -1,6 +1,5 @@
 sendgrid.env
 .env
-index.html
 
 middleware/authMiddleware.js
 
