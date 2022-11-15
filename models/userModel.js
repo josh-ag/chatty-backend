@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     rooms: [String],
     bios: { type: String },
     country: { type: String },
-    phone: { type: Number },
+    phoneNumber: { type: Number },
     verifyCode: { type: String },
     verified: { type: Boolean, default: false },
     resetPassword: String,

@@ -1,7 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 const http = require("http");
-const userRoute = require("./routes/userRoute");
+const Routes = require("./routes/routes");
 const PORT = process.env.PORT || 5050;
 const { Server } = require("socket.io");
 const { dbConn } = require("./config/db");
@@ -39,9 +39,9 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 //route handler
-app.use("/api/user", userRoute);
+app.use("/api", Routes);
 app.get("/", (req, res) => {
-  res.send("Welcome To Chatty Web Server");
+  res.status(200).json({ message: "Welcome To Chatty Web Server!" });
 });
 app.use(errorHandler);
 
