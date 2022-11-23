@@ -12,6 +12,7 @@ const { errorHandler } = require("./middleware/errorMiddleware");
 require("./services/authProvider").googleStrategy;
 require("./services/authProvider").jwtStrategy;
 const session = require("express-session");
+const methodOverride = require("method-override");
 
 //init express
 const app = express();
@@ -20,6 +21,7 @@ const app = express();
 //allow same origin sharing
 app.use(corse());
 app.use(bodyParser.json());
+app.use(methodOverride("_method"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   session({
