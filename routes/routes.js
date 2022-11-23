@@ -1,7 +1,6 @@
 const express = require("express");
 const passport = require("passport");
 const route = express.Router();
-
 const {
   getProfile,
   updateProfile,
@@ -10,6 +9,7 @@ const {
   resetPassword,
   verifyAccount,
   newPassword,
+  uploadProfile,
 } = require("../controller/userController");
 
 /*
@@ -42,5 +42,9 @@ route.route("/auth/google/callback").get((req, res) => {
 */
 route.route("/user/profile").get(passport.authenticate("jwt"), getProfile);
 route.route("/user/:id").put(passport.authenticate("jwt"), updateProfile);
+
+route
+  .route("/user/profile/upload")
+  .post(passport.authenticate("jwt"), uploadProfile);
 
 module.exports = route;

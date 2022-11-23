@@ -1,24 +1,23 @@
 const mongoose = require("mongoose");
+const connString =
+  process.env.NODE_ENV === "production"
+    ? process.env.MONGO_URI
+    : process.env.MONGO_LOCAL;
 
 const dbConn = async () => {
-  try {
-    console.log(process.env.MONGO_LOCAL);
-    let conn;
-    const connString =
-      process.env.NODE_ENV === "production"
-        ? process.env.MONGO_URI
-        : process.env.MONGO_LOCAL;
+  let conn;
 
+  try {
     //connect to mongodb
-    conn = mongoose.connect(connString, {
+    conn = await mongoose.connect(connString, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
 
-    console.log(`Db Connected @${conn.connection.host}`);
+    console.log("Connection to DB succeeded...->", conn.connection.host);
   } catch (err) {
     console.log("Mongo Error: ", err.message);
   }
 };
 
-module.exports = { dbConn };
+module.exports = { dbConn, connString };

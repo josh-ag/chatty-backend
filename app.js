@@ -1,7 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 const http = require("http");
-const Routes = require("./routes/routes");
+const routes = require("./routes/routes");
 const PORT = process.env.PORT || 5050;
 const { Server } = require("socket.io");
 const { dbConn } = require("./config/db");
@@ -15,6 +15,8 @@ const session = require("express-session");
 
 //init express
 const app = express();
+
+// MIDDLEWARES
 //allow same origin sharing
 app.use(corse());
 app.use(bodyParser.json());
@@ -39,9 +41,9 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 //route handler
-app.use("/api", Routes);
+app.use("/api", routes);
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "Welcome To Chatty Web Server!" });
+  res.status(200).json({ message: "Welcome! Chatty Web Server v.1" });
 });
 app.use(errorHandler);
 
@@ -70,4 +72,5 @@ io.on("connection", (socket) => {
 
 //connect Db
 dbConn();
+
 app.listen(PORT, () => console.log("Server Started On Port: ", PORT));

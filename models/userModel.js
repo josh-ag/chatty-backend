@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema(
     resetPassword: String,
     resetPasswordToken: { type: String, unique: true },
     resetPasswordExpires: { type: Date },
+    profilePicture: {
+      id: { type: String, required: [true, "ID is required"] },
+      url: { type: String, required: [true, "image url is required"] },
+    },
   },
   { timestamps: true }
 );

@@ -1,10 +1,10 @@
 const { Users } = require("../models/userModel");
+const cloudinary = require("../services/cloudinary");
 const jwt = require("jsonwebtoken");
 const { hashSync, compareSync, genSaltSync } = require("bcryptjs");
 const { sendEmail } = require("../services/sendEmailProvider");
 
 /*
-
 =====================================================
         @desc - LOGIN USER
         @method - POST
@@ -79,7 +79,7 @@ const register = async (req, res) => {
     const hash = hashSync(password, salt);
 
     //gen token
-    const code = genResetCode(6);
+    const code = genCode(6);
 
     //CREATE ACCOUNT
     const newUser = await Users.create({
@@ -198,7 +198,7 @@ const resetPassword = async (req, res) => {
     }
 
     //Gen. resetCode
-    const resetCode = genResetCode(6);
+    const resetCode = genCode(6);
 
     const updatedUser = await Users.findByIdAndUpdate(
       { _id: user.id },
@@ -338,7 +338,7 @@ const genToken = (id) => {
 };
 
 //Gen auth codes
-const genResetCode = (length) => {
+const genCode = (length) => {
   let result = "";
   const chars = "0123456789";
   const charsLength = chars.length;
@@ -349,6 +349,58 @@ const genResetCode = (length) => {
   return result;
 };
 
+/*
+
+=====================================================
+          @desc - UPLOAD PROFILE PICTURE
+          @method - POST
+          @access - PRIVATE
+=====================================================
+*/
+const uploadProfile = async (req, res) => {
+  const { uploads } = req.body;
+
+  const options = {
+    use_filename: true,
+    unique_filename: false,
+    overwrite: true,
+    folder: "chatty-profile-image",
+  };
+
+  try {
+    // Upload the image
+    const result = await cloudinary.uploader.upload(uploads, options);
+
+    if (!result)
+      return res.status(500).json({
+        message: "Something went wrong from our end",
+        statusCode: 500,
+      });
+    //update user info
+    const updatedUser = await Users.findByIdAndUpdate(
+      { _id: req.user._id },
+      { profilePicture: { id: result.public_id, url: result.secure_url } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(400).json({
+        statusCode: 404,
+        message: "No user was found",
+      });
+    }
+
+    console.log(updatedUser);
+
+    res.status(201).json({
+      statusCode: 201,
+      message: "new profile picture set successfully",
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 const userController = {
   getProfile,
   updateProfile,
@@ -357,5 +409,6 @@ const userController = {
   newPassword,
   resetPassword,
   verifyAccount,
+  uploadProfile,
 };
 module.exports = userController;
