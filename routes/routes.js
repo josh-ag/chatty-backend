@@ -40,7 +40,7 @@ route.route("/auth/google/callback").get((req, res) => {
                   USER ROUTE
           /=======================
 */
-route.route("/user/profile").get(passport.authenticate("jwt"), getProfile);
+route.route("/user/profile/:id").get(passport.authenticate("jwt"), getProfile);
 route.route("/user/:id").put(passport.authenticate("jwt"), updateProfile);
 
 route
