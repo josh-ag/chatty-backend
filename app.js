@@ -36,7 +36,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-//create server
+//create http server instance
 const server = http.createServer(app);
 
 //init socket
