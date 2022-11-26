@@ -361,10 +361,9 @@ const uploadProfile = async (req, res) => {
   const { uploads } = req.body;
 
   const options = {
-    use_filename: true,
-    unique_filename: false,
+    use_filename: false,
+    unique_filename: true,
     overwrite: true,
-    folder: "chatty-profile-image",
   };
 
   try {
@@ -390,14 +389,17 @@ const uploadProfile = async (req, res) => {
       });
     }
 
-    console.log(updatedUser);
-
     res.status(201).json({
       statusCode: 201,
       message: "new profile picture set successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.log(error);
+    return res.status(500).json({
+      message: "Something went wrong from our end",
+      statusCode: 500,
+      stack: error.message,
+    });
   }
 };
 

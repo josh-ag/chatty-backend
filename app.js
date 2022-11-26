@@ -20,7 +20,7 @@ const app = express();
 // MIDDLEWARES
 //allow same origin sharing
 app.use(corse());
-app.use(bodyParser.json());
+app.use(express.json({ limit: "100mb" }));
 app.use(methodOverride("_method"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(

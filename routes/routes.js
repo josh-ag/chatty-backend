@@ -42,7 +42,6 @@ route.route("/auth/google/callback").get((req, res) => {
 */
 route.route("/user/profile/:id").get(passport.authenticate("jwt"), getProfile);
 route.route("/user/:id").put(passport.authenticate("jwt"), updateProfile);
-
 route
   .route("/user/profile/upload")
   .post(passport.authenticate("jwt"), uploadProfile);
