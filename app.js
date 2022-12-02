@@ -1,4 +1,5 @@
 const express = require("express");
+const corse = require("cors");
 require("dotenv").config();
 const http = require("http");
 const routes = require("./routes/routes");
@@ -7,7 +8,6 @@ const { Server } = require("socket.io");
 const { dbConn } = require("./config/db");
 const passport = require("passport");
 const bodyParser = require("body-parser");
-const corse = require("cors");
 const { errorHandler } = require("./middleware/errorMiddleware");
 require("./services/authProvider").googleStrategy;
 require("./services/authProvider").jwtStrategy;
