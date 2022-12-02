@@ -108,6 +108,7 @@ const register = async (req, res) => {
       message: "Account created successfully",
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       message: "Server is having trouble understanding your request this time",
       statusCode: 500,

@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
     verifyCode: { type: String },
     verified: { type: Boolean, default: false },
     resetPassword: String,
-    resetPasswordToken: { type: String, unique: true },
+    // resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
     profilePicture: {
       id: { type: String },
