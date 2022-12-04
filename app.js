@@ -21,7 +21,7 @@ const app = express();
 
 // MIDDLEWARES
 //allow same origin sharing
-app.use(corse());
+app.use(corse({ origin: "https://chatty-fdk2.onrender.com" }));
 app.use(express.json({ limit: "100mb" }));
 // app.use(methodOverride("_method"));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -49,11 +49,7 @@ app.get("/", (req, res) => {
 app.use(errorHandler);
 
 //init socket
-const io = new Server(server, {
-  cors: {
-    origin: "https://chatty-fdk2.onrender.com",
-  },
-});
+const io = new Server(server);
 /*
 ************************************
       SOCKET
