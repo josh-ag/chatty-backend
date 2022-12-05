@@ -3,7 +3,7 @@ const corse = require("cors");
 require("dotenv").config();
 const http = require("http");
 const routes = require("./routes/routes");
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 2022;
 const { Server } = require("socket.io");
 const { dbConn } = require("./config/db");
 const passport = require("passport");
@@ -21,7 +21,7 @@ const app = express();
 
 // MIDDLEWARES
 //allow same origin sharing
-app.use(corse({ origin: "https://chatty-fdk2.onrender.com" }));
+app.use(corse());
 app.use(express.json({ limit: "100mb" }));
 // app.use(methodOverride("_method"));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -49,7 +49,13 @@ app.get("/", (req, res) => {
 app.use(errorHandler);
 
 //init socket
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "https://chatty-fdk2.onrender.com",
+    credentials: true,
+    methods: ["GET", "POST"],
+  },
+});
 /*
 ************************************
       SOCKET
@@ -76,7 +82,7 @@ const addUser = (userId, roomId, username) => {
 const getRoomUsers = (roomId) => {
   return roomUsers.filter((user) => user.roomId == roomId);
 };
-//remove user  // console.log(roomMessage);
+//remove user
 const userLeave = (userId) => {
   roomUsers = roomUsers.filter((user) => user.userId !== userId);
 };
