@@ -56,7 +56,7 @@ app.use(errorHandler);
 //init socket
 const io = new Server(server, {
   cors: {
-    origin: "https://chatty-fdk2.onrender.com",
+    origin: "*",
     credentials: true,
     methods: ["GET", "POST"],
   },
