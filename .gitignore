@@ -3,6 +3,7 @@ sendgrid.env
 uploads
 uploads/*.*
 
-middleware/authMiddleware.js
 
 node_modules
+
+TODO
