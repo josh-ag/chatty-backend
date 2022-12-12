@@ -12,7 +12,7 @@ const { errorHandler } = require("./middleware/errorMiddleware");
 require("./services/authProvider").googleStrategy;
 require("./services/authProvider").jwtStrategy;
 const session = require("express-session");
-// const methodOverride = require("method-override");
+const MongoStore = require("connect-mongo");
 const { Rooms } = require("./models/roomModel");
 const { Users } = require("./models/userModel");
 
@@ -22,15 +22,20 @@ const app = express();
 // MIDDLEWARES
 //allow same origin sharing
 app.use(corse());
+//-momery unleaked---------
+app.set("trust proxy", 1);
+
 app.use(express.json({ limit: "100mb" }));
-// app.use(methodOverride("_method"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   session({
+    store: new MongoStore({
+      mongoUrl: process.env.MONGO_URI,
+    }),
     secret: process.env.JWT_SECRET,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: true },
+    cookie: { secure: true, maxAge: 60000 },
   })
 );
 
