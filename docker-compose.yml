@@ -5,7 +5,7 @@ services:
     container_name: chatty-server
     restart: always
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
     env_file:
       - ./.env
     ports:
@@ -16,6 +16,11 @@ services:
 
   mongo:
     image: mongo
+    restart: always
+    volumes:
+      - /usr/data/mongo:/etc/mongo:rw
     expose: 
       - 27017
+    # ports:
+    #   - 27017:27017
       

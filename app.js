@@ -66,15 +66,19 @@ const io = new Server(server, {
       SOCKET
 ************************************
 */
-//holds all users in a room
+//all users in a room
 let roomUsers = [];
+
+let uniqueArray = (a) =>
+  [...new Set(a.map((o) => JSON.stringify(o)))].map((s) => JSON.parse(s));
+//all messages in a room
 const roomMessages = [];
 
 //add message
 const addMessage = (message) => {
   roomMessages.push(message);
 };
-
+//get messages associated with room
 const getMessages = (roomId) => {
   const messages = roomMessages.filter((message) => message.roomId === roomId);
   return messages;
@@ -85,11 +89,12 @@ const addUser = (userId, roomId, username) => {
 };
 //get users
 const getRoomUsers = (roomId) => {
-  return roomUsers.filter((user) => user.roomId == roomId);
-};
-//remove user
-const userLeave = (userId) => {
-  roomUsers = roomUsers.filter((user) => user.userId !== userId);
+  let activeRoomUsers = roomUsers.filter((user) => user.roomId == roomId);
+  //remove dublicates
+  let uniqueArray = (a) =>
+    [...new Set(a.map((o) => JSON.stringify(o)))].map((s) => JSON.parse(s));
+
+  return uniqueArray(activeRoomUsers);
 };
 
 //@CREATE NEW ROOM
@@ -108,7 +113,7 @@ const createRoom = async (socket, roomInfo) => {
   socket.emit("new-room", createdRoom);
 };
 
-//@FINDS A ROOM
+//@desc - find room
 const findRoom = async (socket, userData) => {
   //check if room is available
   const { roomId } = userData;
@@ -136,13 +141,20 @@ const getNewUser = async (socket, userData) => {
   }
 
   socket.join(roomId);
-  //add the user to users list
-  addUser(userId, roomId, user.username);
+  //add the user to roomUsers
 
-  //emit to everyone in room with ID roomId except emitting user
+  addUser(userId, roomId, user.username);
+  //tell everyone else in the room of new user
   socket.to(roomId).emit("new-user", user.username);
 
   //emit to all users in the room with ID roomID
+  io.to(roomId).emit("all-users", getRoomUsers(roomId));
+};
+
+//remove user
+const userLeave = (userId, roomId) => {
+  roomUsers = roomUsers.filter((user) => user.userId == userId);
+
   io.to(roomId).emit("all-users", getRoomUsers(roomId));
 };
 
@@ -165,10 +177,10 @@ io.on("connection", (socket) => {
     getNewUser(socket, data);
 
     //LISTEN FOR DISCONNECT
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       //remove user
-      userLeave(data.userId);
       socket.leave(data.roomId);
+      userLeave(data.userId, data.roomId);
     });
   });
 
